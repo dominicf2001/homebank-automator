@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Plaid Link</title>
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+</head>
+
+<body>
+    <button id="link-button">Connect Bank Account</button>
+
+    <script>
+        const apiUrl = "http://localhost:8000/api";
+        let handler;
+
+        fetch(`${apiUrl}/create_link_token`)
+            .then(response => response.json())
+            .then(data => {
+                handler = Plaid.create({
+                    token: data.link_token,
+                    onSuccess: (public_token, metadata) => {
+                        console.log('Public Token:', public_token);
+                        fetch(`${apiUrl}/save_access_token?public_token=${public_token}`, {
+                            method: "POST"
+                        })
+                    },
+                    onExit: (err, metadata) => {
+                        console.error(err);
+                    },
+                });
+            });
+
+        document.getElementById('link-button').onclick = () => {
+            handler.open();
+        };
+    </script>
+</body>
+
+</html>
